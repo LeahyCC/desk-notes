@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea to talk through
+    url: https://github.com/LeahyCC/desk-notes/discussions
+    about: Ask in Discussions instead of opening an issue.
+  - name: Security problem
+    url: https://github.com/LeahyCC/desk-notes/security/advisories/new
+    about: Report it privately. Please do not open a public issue.
