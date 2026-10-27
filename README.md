@@ -24,16 +24,19 @@ DeskNotes has no window of its own. It lives in the tray by the clock, and Windo
 - Double-click the tray icon for a new note.
 - Right-click the tray icon to make a note, show or hide all of them, start with Windows, open the notes folder, or quit.
 - Turn on "Start with Windows" so your notes come back after a restart. It remembers where the exe is, so turn it on after the exe is where you want it.
+- Ctrl+Alt+N makes a new note at the mouse. Ctrl+Alt+H shows or hides every note. If another program already uses one of those, the tray menu still has the action.
 
 Only one copy runs at a time. Starting the exe again does nothing while the first one is running.
 
 ## Using notes
 
-- Right-click a note for its layer, colour, text size, click-through, new note and delete.
+- Right-click a note for its layer, colour, glass, text size, lock position, click-through, new note and delete.
 - Drag a note by the padding around the text. There is no title bar.
 - Resize from any edge.
 - Ctrl+mouse wheel changes the text size.
 - There are six tints: Dark, Slate, Moss, Plum, Clay and Light.
+- Glass sets how see-through a note is at rest: Clear, Glass, Frosted or Solid. A note you are typing in goes almost solid.
+- Lock position stops a note being dragged or resized.
 - Delete moves the note to a trash folder. DeskNotes never deletes a file outright.
 
 Click-through lets the mouse fall through a note to whatever is under it. A faint strip across the top stays live: right-click it to turn click-through off again, or drag it to move the note.
@@ -66,11 +69,15 @@ color: #202020
 font: 14
 z: OnDesktop
 clickthrough: true
+locked: true
+opacity: 55
 ---
 Note text here.
 ```
 
-You can edit these by hand while DeskNotes is closed. A value it can't read falls back to the default. If a note ends up off-screen, for example after unplugging a monitor, close DeskNotes, change its `x` and `y`, and start it again.
+You can edit these by hand while DeskNotes is closed. A value it can't read falls back to the default. A note saved on a monitor that is no longer there comes back on the main one when DeskNotes starts.
+
+If DeskNotes crashes, it writes what happened to `%APPDATA%\DeskNotes\error.log`.
 
 ## How the layers work
 
@@ -100,7 +107,7 @@ The exe lands in `bin\Release\net10.0-windows\win-x64\publish\`.
 
 ## Status
 
-Early days. Not yet checked by hand: the On desktop layer during Win+D, and behaviour on a second monitor. The app is system DPI aware, so on a monitor scaled differently from the main one Windows stretches the notes and the text looks soft.
+Early days. Not yet checked by hand: behaviour on a second monitor. The app is system DPI aware, so on a monitor scaled differently from the main one Windows stretches the notes and the text looks soft.
 
 ## Contributing
 
