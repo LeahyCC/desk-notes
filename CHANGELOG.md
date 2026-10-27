@@ -9,6 +9,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - MIT license, contributing guide, code of conduct and security policy.
 - CI build and a release workflow that publishes both exes.
 - Screenshots in the README.
+- An app icon, on the exe and in the tray.
 
 ### Fixed
 

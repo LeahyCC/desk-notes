@@ -130,7 +130,7 @@ public partial class App : Application
 
         _tray = new Forms.NotifyIcon
         {
-            Icon = MakeIcon(),
+            Icon = TrayIcon(),
             Text = "DeskNotes",
             Visible = true,
             ContextMenuStrip = menu,
@@ -138,16 +138,11 @@ public partial class App : Application
         _tray.DoubleClick += (_, _) => NewNote();
     }
 
-    // Drawn at runtime so the project has no binary assets to look after.
-    private static Drawing.Icon MakeIcon()
+    // The same icon the exe carries. Asking for the small icon size makes Windows pick the frame
+    // drawn for the tray (16, 20 or 24 px by display scale) instead of shrinking a big one.
+    private static Drawing.Icon TrayIcon()
     {
-        using var bmp = new Drawing.Bitmap(32, 32);
-        using var g = Drawing.Graphics.FromImage(bmp);
-        g.Clear(Drawing.Color.Transparent);
-        using var fill = new Drawing.SolidBrush(Drawing.Color.FromArgb(0x2A, 0x2A, 0x2A));
-        using var edge = new Drawing.Pen(Drawing.Color.FromArgb(0x9A, 0x9A, 0x9A));
-        g.FillRectangle(fill, 5, 5, 22, 22);
-        g.DrawRectangle(edge, 5, 5, 21, 21);
-        return Drawing.Icon.FromHandle(bmp.GetHicon());
+        using var stream = GetResourceStream(new Uri("pack://application:,,,/DeskNotes.ico")).Stream;
+        return new Drawing.Icon(stream, Forms.SystemInformation.SmallIconSize);
     }
 }
