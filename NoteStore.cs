@@ -72,6 +72,8 @@ public static class NoteStore
         sb.Append(CultureInfo.InvariantCulture, $"font: {n.FontSize:0.#}\n");
         sb.Append(CultureInfo.InvariantCulture, $"z: {n.Z}\n");
         if (n.ClickThrough) sb.Append("clickthrough: true\n");
+        if (n.Locked) sb.Append("locked: true\n");
+        sb.Append(CultureInfo.InvariantCulture, $"opacity: {n.Opacity}\n");
         foreach (var line in n.OtherFrontmatter) sb.Append(line).Append('\n');
         sb.Append("---\n");
         // The TextBox types CRLF for Enter while the frontmatter is LF. One line ending per file.
@@ -102,6 +104,8 @@ public static class NoteStore
                 case "font": n.FontSize = Num(val, n.FontSize); break;
                 case "z": if (Enum.TryParse<ZMode>(val, true, out var z) && Enum.IsDefined(z)) n.Z = z; break;
                 case "clickthrough": n.ClickThrough = val.Equals("true", StringComparison.OrdinalIgnoreCase); break;
+                case "locked": n.Locked = val.Equals("true", StringComparison.OrdinalIgnoreCase); break;
+                case "opacity": n.Opacity = Math.Clamp((int)Num(val, n.Opacity), 0, 100); break;
                 default: n.OtherFrontmatter.Add(lines[i]); break;
             }
         }
