@@ -20,5 +20,6 @@ public sealed class Note
     public string Color { get; set; } = "#202020";
     public double FontSize { get; set; } = 14;
     public ZMode Z { get; set; } = ZMode.Normal;
+    public bool ClickThrough { get; set; }
     public string Text { get; set; } = "";
 }

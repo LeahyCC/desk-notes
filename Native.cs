@@ -23,6 +23,14 @@ internal static class Native
     public const int WS_POPUP = unchecked((int)0x80000000);
     public const int WS_EX_TOOLWINDOW = 0x00000080;
     public const int WS_EX_NOACTIVATE = 0x08000000;
+    public const int WS_EX_TRANSPARENT = 0x00000020;
+    public const int GWL_EXSTYLE = -20;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT { public int x, y; }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT { public int left, top, right, bottom; }
 
     [StructLayout(LayoutKind.Sequential)]
     public struct WINDOWPOS
@@ -44,6 +52,18 @@ internal static class Native
 
     [DllImport("user32.dll")]
     public static extern IntPtr GetWindow(IntPtr hWnd, uint cmd);
+
+    [DllImport("user32.dll")]
+    public static extern bool GetCursorPos(out POINT p);
+
+    [DllImport("user32.dll")]
+    public static extern bool GetWindowRect(IntPtr hWnd, out RECT r);
+
+    [DllImport("user32.dll")]
+    public static extern int GetWindowLong(IntPtr hWnd, int index);
+
+    [DllImport("user32.dll")]
+    public static extern int SetWindowLong(IntPtr hWnd, int index, int value);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     public static extern IntPtr CreateWindowEx(

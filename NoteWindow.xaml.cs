@@ -33,6 +33,7 @@ public partial class NoteWindow : Window
     public Note Note { get; }
 
     private readonly ZOrder _z;
+    private readonly ClickThrough _clickThrough;
     private readonly DispatcherTimer _save = new() { Interval = TimeSpan.FromMilliseconds(600) };
     private readonly SolidColorBrush _fill = new();
     private readonly SolidColorBrush _edge = new();
@@ -55,7 +56,12 @@ public partial class NoteWindow : Window
         _z = new ZOrder(this);
         _z.Apply(note.Z);
         // The layer is only applied once the window handle exists, so the dot must wait for that too.
-        SourceInitialized += (_, _) => RefreshDot();
+        _clickThrough = new ClickThrough(this);
+        SourceInitialized += (_, _) =>
+        {
+            RefreshDot();
+            ApplyClickThrough();
+        };
         ContextMenu = BuildMenu();
 
         _save.Tick += (_, _) =>
@@ -123,6 +129,7 @@ public partial class NoteWindow : Window
         Editor.CaretBrush = Editor.Foreground;
         Editor.SelectionBrush = new SolidColorBrush(light ? Color.FromRgb(0x6A, 0x86, 0x95) : Color.FromRgb(0x88, 0x9E, 0xAA));
         Editor.SelectionOpacity = 0.35;
+        Strip.Background = new SolidColorBrush(light ? Color.FromArgb(0x18, 0, 0, 0) : Color.FromArgb(0x18, 0xFF, 0xFF, 0xFF));
     }
 
     private void RefreshDot()
@@ -154,6 +161,23 @@ public partial class NoteWindow : Window
         ApplyColor(animate: true);
         ContextMenu = BuildMenu();
         QueueSave();
+    }
+
+    private void SetClickThrough(bool on)
+    {
+        Note.ClickThrough = on;
+        ApplyClickThrough();
+        ContextMenu = BuildMenu();
+        QueueSave();
+    }
+
+    // While the mouse falls through, the editor must not grab keyboard focus from a click on the strip.
+    private void ApplyClickThrough()
+    {
+        _clickThrough.Set(Note.ClickThrough);
+        Editor.IsHitTestVisible = !Note.ClickThrough;
+        Editor.Focusable = !Note.ClickThrough;
+        Strip.Visibility = Note.ClickThrough ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void SetFontSize(double size)
@@ -195,6 +219,11 @@ public partial class NoteWindow : Window
         text.Items.Add(bigger);
         text.Items.Add(smaller);
         menu.Items.Add(text);
+
+        var through = new MenuItem { Header = "Click-through", IsCheckable = true, IsChecked = Note.ClickThrough,
+            ToolTip = "Mouse passes through the note. Right-click the strip at the top to turn it off." };
+        through.Click += (_, _) => SetClickThrough(through.IsChecked);
+        menu.Items.Add(through);
 
         menu.Items.Add(new Separator());
 

@@ -31,6 +31,14 @@
           MouseEnter="Frame_MouseEnter"
           MouseLeave="Frame_MouseLeave">
     <Grid>
+      <!-- Only shown in click-through mode: the one strip that still takes the mouse. -->
+      <Border x:Name="Strip"
+              Height="18"
+              VerticalAlignment="Top"
+              CornerRadius="12,12,0,0"
+              Visibility="Collapsed"
+              IsHitTestVisible="False" />
+
       <TextBox x:Name="Editor"
                Margin="16,18,16,14"
                AcceptsReturn="True"

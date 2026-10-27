@@ -28,13 +28,15 @@ The exe lands in `bin\Release\net10.0-windows\win-x64\publish\`. The tray menu h
 
 ## Use
 
-- Right-click a note: layer, colour, text size, new note, delete.
+- Right-click a note: layer, colour, text size, click-through, new note, delete.
 - Drag by the padding around the text. There is no title bar.
 - Resize from any edge.
 - Ctrl+mouse wheel changes text size.
 - Tray icon: new note, show or hide all, start with Windows, open the notes folder, quit.
 
 A small dot in the top-left corner shows the layer: amber topmost, orange stay topmost, blue bottom, green on desktop. No dot means normal.
+
+Click-through makes the mouse fall through the note to whatever is under it. A faint strip across the top stays live: right-click it to turn click-through off again, or drag it to move the note.
 
 ## Files
 
@@ -49,6 +51,7 @@ h: 200
 color: #202020
 font: 14
 z: OnDesktop
+clickthrough: true
 ---
 Note text here.
 ```
@@ -61,6 +64,7 @@ Note text here.
 - On desktop is Bottom plus a watcher. A hidden marker window sits at the bottom of the stack. When Show Desktop lifts the desktop window above the marker, the notes go topmost until it drops back.
 - Re-parenting into the desktop window (what wallpaper engines do) was tried first. On Windows 11 24H2 and later nothing parented there renders, so it was dropped.
 - Notes swallow `SC_MINIMIZE`, so Win+M does not take them away.
+- Click-through sets `WS_EX_TRANSPARENT`. A 40ms timer clears it while the cursor is over the top strip, because a transparent window gets no mouse messages at all.
 
 ## Status
 

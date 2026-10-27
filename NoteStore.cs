@@ -45,6 +45,7 @@ public static class NoteStore
         sb.Append(CultureInfo.InvariantCulture, $"color: {n.Color}\n");
         sb.Append(CultureInfo.InvariantCulture, $"font: {n.FontSize:0.#}\n");
         sb.Append(CultureInfo.InvariantCulture, $"z: {n.Z}\n");
+        if (n.ClickThrough) sb.Append("clickthrough: true\n");
         sb.Append("---\n");
         sb.Append(n.Text);
         File.WriteAllText(PathFor(n), sb.ToString());
@@ -83,6 +84,7 @@ public static class NoteStore
                     case "color": if (val.Length > 0) n.Color = val; break;
                     case "font": n.FontSize = Num(val, n.FontSize); break;
                     case "z": if (Enum.TryParse<ZMode>(val, true, out var z)) n.Z = z; break;
+                    case "clickthrough": n.ClickThrough = val.Equals("true", StringComparison.OrdinalIgnoreCase); break;
                 }
             }
             i++; // skip the closing ---
