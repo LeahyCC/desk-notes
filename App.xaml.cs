@@ -29,6 +29,13 @@ public partial class App : Application
 
         base.OnStartup(e);
 
+        // A crash with no window is invisible; leave a trail next to the notes.
+        DispatcherUnhandledException += (_, args) =>
+        {
+            Directory.CreateDirectory(NoteStore.Root);
+            File.AppendAllText(Path.Combine(NoteStore.Root, "error.log"), $"{DateTime.Now:s} {args.Exception}\n\n");
+        };
+
         var notes = NoteStore.LoadAll();
         if (notes.Count == 0)
             notes.Add(new Note { Text = "Right-click for layer, colour and size.\nDrag by the edge. Ctrl+wheel resizes text." });
