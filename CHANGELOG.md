@@ -10,6 +10,11 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - CI build and a release workflow that publishes both exes.
 - Screenshots in the README.
 - An app icon, on the exe and in the tray.
+- Ctrl+Alt+N makes a new note at the mouse, and Ctrl+Alt+H shows or hides every note.
+- Glass level per note: Clear, Glass, Frosted or Solid.
+- Lock position, so a note cannot be dragged or resized.
+- A note saved on a monitor that is gone comes back on the main one.
+- Crashes are written to `%APPDATA%\DeskNotes\error.log`.
 
 ### Fixed
 

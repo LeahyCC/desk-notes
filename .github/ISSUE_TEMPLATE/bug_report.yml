@@ -52,7 +52,13 @@ body:
       label: Monitors and scaling
       placeholder: Two monitors, main at 150%, second at 100%
   - type: textarea
+    id: errorlog
+    attributes:
+      label: Error log
+      description: If DeskNotes crashed, paste the last entry from `%APPDATA%\DeskNotes\error.log`.
+      render: text
+  - type: textarea
     id: extra
     attributes:
       label: Anything else
-      description: The note's frontmatter, an error log, or a screenshot helps.
+      description: The note's frontmatter or a screenshot helps.

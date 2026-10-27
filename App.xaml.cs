@@ -34,6 +34,8 @@ public partial class App : Application
         {
             Directory.CreateDirectory(NoteStore.Root);
             File.AppendAllText(Path.Combine(NoteStore.Root, "error.log"), $"{DateTime.Now:s} {args.Exception}\n\n");
+            // The app is about to close; keep what was typed in the last moment before it goes.
+            foreach (var w in _open) w.FlushSave();
         };
 
         var notes = NoteStore.LoadAll();
