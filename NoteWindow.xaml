@@ -1,0 +1,60 @@
+<Window x:Class="DeskNotes.NoteWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DeskNotes"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResize"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        WindowStartupLocation="Manual"
+        MinWidth="140"
+        MinHeight="64"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+
+  <!-- Borderless window with resize handles on the edges and no caption bar at all. -->
+  <WindowChrome.WindowChrome>
+    <WindowChrome CaptionHeight="0"
+                  ResizeBorderThickness="8"
+                  GlassFrameThickness="0"
+                  CornerRadius="0"
+                  UseAeroCaptionButtons="False" />
+  </WindowChrome.WindowChrome>
+
+  <Border x:Name="Frame"
+          CornerRadius="12"
+          BorderThickness="1"
+          MouseLeftButtonDown="Frame_MouseLeftButtonDown"
+          MouseEnter="Frame_MouseEnter"
+          MouseLeave="Frame_MouseLeave">
+    <Grid>
+      <TextBox x:Name="Editor"
+               Margin="16,18,16,14"
+               AcceptsReturn="True"
+               AcceptsTab="True"
+               TextWrapping="Wrap"
+               Background="Transparent"
+               BorderThickness="0"
+               Padding="0"
+               FontSize="14"
+               TextBlock.LineHeight="20"
+               TextBlock.LineStackingStrategy="BlockLineHeight"
+               VerticalScrollBarVisibility="Hidden"
+               HorizontalScrollBarVisibility="Disabled"
+               TextChanged="Editor_TextChanged"
+               PreviewMouseWheel="Editor_PreviewMouseWheel" />
+
+      <!-- Accent dot: colour says which layer the note is on. Hidden for Normal. -->
+      <Ellipse x:Name="Dot"
+               Width="6"
+               Height="6"
+               Margin="9,9,0,0"
+               HorizontalAlignment="Left"
+               VerticalAlignment="Top"
+               Opacity="0.4" />
+    </Grid>
+  </Border>
+</Window>
