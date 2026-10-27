@@ -8,6 +8,7 @@ internal static class Native
     public const int WM_WINDOWPOSCHANGING = 0x0046;
     public const int WM_SYSCOMMAND = 0x0112;
     public const int SC_MINIMIZE = 0xF020;
+    public const int SC_CLOSE = 0xF060;
 
     public const uint SWP_NOSIZE = 0x0001;
     public const uint SWP_NOMOVE = 0x0002;

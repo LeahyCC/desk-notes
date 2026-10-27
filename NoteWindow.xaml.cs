@@ -45,10 +45,12 @@ public partial class NoteWindow : Window
 
         Left = note.X;
         Top = note.Y;
-        Width = note.W;
-        Height = note.H;
+        // Files can be edited by hand. A bad size or colour must not stop the app starting.
+        Width = Math.Max(note.W, MinWidth);
+        Height = Math.Max(note.H, MinHeight);
+        if (!IsColor(note.Color)) note.Color = Palette[0].Hex;
         Editor.Text = note.Text;
-        Editor.FontSize = note.FontSize;
+        ApplyFontSize(note.FontSize);
         Frame.Background = _fill;
         Frame.BorderBrush = _edge;
         ApplyColor(animate: false);
@@ -64,11 +66,7 @@ public partial class NoteWindow : Window
         };
         ContextMenu = BuildMenu();
 
-        _save.Tick += (_, _) =>
-        {
-            _save.Stop();
-            NoteStore.Save(Note);
-        };
+        _save.Tick += (_, _) => SaveNow();
         LocationChanged += (_, _) => RememberGeometry();
         SizeChanged += (_, _) => RememberGeometry();
         Activated += (_, _) => ApplyColor(animate: true);
@@ -83,6 +81,29 @@ public partial class NoteWindow : Window
         _save.Start();
     }
 
+    private void SaveNow()
+    {
+        _save.Stop();
+        try
+        {
+            NoteStore.Save(Note);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // Something else has the file open (a sync tool, a virus scan). Try again shortly, do not crash.
+            QueueSave();
+        }
+    }
+
+    /// <summary>Writes a waiting change now. Called on quit, so the last moment of typing is kept.</summary>
+    public void FlushSave()
+    {
+        if (_save.IsEnabled) SaveNow();
+    }
+
+    /// <summary>Drops a waiting change. Called on delete, or the timer would write the note straight back.</summary>
+    public void CancelSave() => _save.Stop();
+
     private void RememberGeometry()
     {
         if (!IsLoaded) return;
@@ -95,6 +116,7 @@ public partial class NoteWindow : Window
 
     private void Editor_TextChanged(object sender, TextChangedEventArgs e)
     {
+        if (!IsLoaded) return; // the constructor filling the box is not an edit
         Note.Text = Editor.Text;
         QueueSave();
     }
@@ -102,6 +124,19 @@ public partial class NoteWindow : Window
     // ---- look ------------------------------------------------------------------------------------
 
     private static bool IsLightTint(Color c) => 0.299 * c.R + 0.587 * c.G + 0.114 * c.B > 128;
+
+    private static bool IsColor(string s)
+    {
+        try
+        {
+            return ColorConverter.ConvertFromString(s) is Color;
+        }
+        catch
+        {
+            // Junk throws FormatException, InvalidOperationException, even FileNotFoundException.
+            return false;
+        }
+    }
 
     private void ApplyColor(bool animate)
     {
@@ -182,11 +217,17 @@ public partial class NoteWindow : Window
 
     private void SetFontSize(double size)
     {
+        ApplyFontSize(size);
+        QueueSave();
+    }
+
+    // The XAML line height only fits 14pt, so every size, including the one loaded from the file, sets both.
+    private void ApplyFontSize(double size)
+    {
         Note.FontSize = Math.Clamp(size, 9, 48);
         Editor.FontSize = Note.FontSize;
         // Keep the line box in step with the glyphs; the 20/14 ratio is the Win11 body text spec.
         TextBlock.SetLineHeight(Editor, Math.Round(Note.FontSize * 20 / 14));
-        QueueSave();
     }
 
     private ContextMenu BuildMenu()
@@ -205,7 +246,7 @@ public partial class NoteWindow : Window
         var colour = new MenuItem { Header = "Colour" };
         foreach (var (name, hex) in Palette)
         {
-            var item = new MenuItem { Header = name, IsCheckable = true, IsChecked = hex == Note.Color };
+            var item = new MenuItem { Header = name, IsCheckable = true, IsChecked = hex.Equals(Note.Color, StringComparison.OrdinalIgnoreCase) };
             item.Click += (_, _) => SetColor(hex);
             colour.Items.Add(item);
         }
