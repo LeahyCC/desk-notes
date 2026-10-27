@@ -23,7 +23,8 @@ jobs:
           $version = "${{ github.ref_name }}".TrimStart('v')
           $common = @('-c', 'Release', '-r', 'win-x64', '-p:PublishSingleFile=true', "-p:Version=$version")
 
-          dotnet publish @common --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -o out/standalone
+          # Compression is what keeps the standalone exe near 70 MB. Without it, it comes out at 155 MB.
+          dotnet publish @common --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o out/standalone
           dotnet publish @common --self-contained false -o out/needs-dotnet
 
           New-Item -ItemType Directory -Force dist | Out-Null
