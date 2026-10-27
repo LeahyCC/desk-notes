@@ -36,8 +36,16 @@ public partial class App : Application
         BuildTray();
     }
 
+    // Windows can end the process soon after this returns, before OnExit gets a turn.
+    protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
+    {
+        foreach (var w in _open) w.FlushSave();
+        base.OnSessionEnding(e);
+    }
+
     protected override void OnExit(ExitEventArgs e)
     {
+        foreach (var w in _open) w.FlushSave();
         _tray?.Dispose();
         base.OnExit(e);
     }
@@ -68,7 +76,17 @@ public partial class App : Application
 
     public void Delete(NoteWindow w)
     {
-        NoteStore.Trash(w.Note);
+        w.FlushSave(); // so the copy in the trash has the last few keystrokes too
+        try
+        {
+            NoteStore.Trash(w.Note);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            MessageBox.Show($"Could not move the note to the trash folder.\n\n{ex.Message}", "DeskNotes");
+            return;
+        }
+        w.CancelSave(); // a retry still waiting would write the note straight back
         _open.Remove(w);
         w.Close();
     }
