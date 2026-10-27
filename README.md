@@ -28,11 +28,12 @@ The exe lands in `bin\Release\net10.0-windows\win-x64\publish\`. The tray menu h
 
 ## Use
 
-- Right-click a note: layer, colour, text size, click-through, new note, delete.
+- Right-click a note: layer, colour, glass level, text size, lock position, click-through, new note, delete.
 - Drag by the padding around the text. There is no title bar.
 - Resize from any edge.
 - Ctrl+mouse wheel changes text size.
 - Tray icon: new note, show or hide all, start with Windows, open the notes folder, quit.
+- Ctrl+Alt+N makes a new note at the mouse. Ctrl+Alt+H shows or hides every note. If another program owns one of those, the tray menu still has the action.
 
 A small dot in the top-left corner shows the layer: amber topmost, orange stay topmost, blue bottom, green on desktop. No dot means normal.
 
@@ -52,6 +53,8 @@ color: #202020
 font: 14
 z: OnDesktop
 clickthrough: true
+locked: true
+opacity: 55
 ---
 Note text here.
 ```
@@ -68,4 +71,4 @@ Note text here.
 
 ## Status
 
-First cut. Not yet checked by hand: the On desktop layer during Win+D, and behaviour on a second monitor.
+First cut. Not yet checked by hand: behaviour on a second monitor. A note saved on a monitor that is no longer there is pulled back to the main one on load.

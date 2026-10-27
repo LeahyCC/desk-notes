@@ -47,6 +47,7 @@ public partial class NoteWindow : Window
         Top = note.Y;
         Width = note.W;
         Height = note.H;
+        KeepOnScreen();
         Editor.Text = note.Text;
         Editor.FontSize = note.FontSize;
         Frame.Background = _fill;
@@ -61,6 +62,7 @@ public partial class NoteWindow : Window
         {
             RefreshDot();
             ApplyClickThrough();
+            if (Note.Locked) ResizeMode = ResizeMode.NoResize;
         };
         ContextMenu = BuildMenu();
 
@@ -73,6 +75,19 @@ public partial class NoteWindow : Window
         SizeChanged += (_, _) => RememberGeometry();
         Activated += (_, _) => ApplyColor(animate: true);
         Deactivated += (_, _) => ApplyColor(animate: true);
+    }
+
+    // Monitors come and go. A note saved on a screen that is no longer there comes back on the main one.
+    private void KeepOnScreen()
+    {
+        var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
+            SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
+        var visible = Rect.Intersect(new Rect(Left, Top, Width, Height), screen);
+        if (visible.IsEmpty || visible.Width < 40 || visible.Height < 40)
+        {
+            Left = 120;
+            Top = 120;
+        }
     }
 
     // ---- persistence ---------------------------------------------------------------------------
@@ -109,7 +124,8 @@ public partial class NoteWindow : Window
         var light = IsLightTint(tint);
 
         // Glass at rest so the wallpaper shows through; almost solid while focused so text is readable.
-        byte alpha = IsActive ? (byte)0xF2 : light ? (byte)0xA6 : (byte)0x8C;
+        var rest = (byte)Math.Round(Note.Opacity * 2.55);
+        var alpha = IsActive ? Math.Max(rest, (byte)0xF2) : rest;
         var fill = Color.FromArgb(alpha, tint.R, tint.G, tint.B);
         var edge = light ? Color.FromArgb(0x30, 0, 0, 0) : Color.FromArgb(0x40, 0xFF, 0xFF, 0xFF);
 
@@ -163,6 +179,22 @@ public partial class NoteWindow : Window
         QueueSave();
     }
 
+    private void SetOpacity(int percent)
+    {
+        Note.Opacity = percent;
+        ApplyColor(animate: true);
+        ContextMenu = BuildMenu();
+        QueueSave();
+    }
+
+    private void SetLocked(bool on)
+    {
+        Note.Locked = on;
+        ResizeMode = on ? ResizeMode.NoResize : ResizeMode.CanResize;
+        ContextMenu = BuildMenu();
+        QueueSave();
+    }
+
     private void SetClickThrough(bool on)
     {
         Note.ClickThrough = on;
@@ -211,6 +243,15 @@ public partial class NoteWindow : Window
         }
         menu.Items.Add(colour);
 
+        var glass = new MenuItem { Header = "Glass" };
+        foreach (var (name, pct) in new[] { ("Clear", 30), ("Glass", 55), ("Frosted", 75), ("Solid", 100) })
+        {
+            var item = new MenuItem { Header = name, IsCheckable = true, IsChecked = pct == Note.Opacity };
+            item.Click += (_, _) => SetOpacity(pct);
+            glass.Items.Add(item);
+        }
+        menu.Items.Add(glass);
+
         var text = new MenuItem { Header = "Text" };
         var bigger = new MenuItem { Header = "Bigger", InputGestureText = "Ctrl+Wheel" };
         bigger.Click += (_, _) => SetFontSize(Note.FontSize + 1);
@@ -219,6 +260,10 @@ public partial class NoteWindow : Window
         text.Items.Add(bigger);
         text.Items.Add(smaller);
         menu.Items.Add(text);
+
+        var locked = new MenuItem { Header = "Lock position", IsCheckable = true, IsChecked = Note.Locked };
+        locked.Click += (_, _) => SetLocked(locked.IsChecked);
+        menu.Items.Add(locked);
 
         var through = new MenuItem { Header = "Click-through", IsCheckable = true, IsChecked = Note.ClickThrough,
             ToolTip = "Mouse passes through the note. Right-click the strip at the top to turn it off." };
@@ -244,7 +289,7 @@ public partial class NoteWindow : Window
     // padding around the text. That padding is the drag handle; there is no title bar.
     private void Frame_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.ButtonState == MouseButtonState.Pressed) DragMove();
+        if (e.ButtonState == MouseButtonState.Pressed && !Note.Locked) DragMove();
     }
 
     private void Frame_MouseEnter(object sender, MouseEventArgs e) =>

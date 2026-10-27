@@ -21,5 +21,8 @@ public sealed class Note
     public double FontSize { get; set; } = 14;
     public ZMode Z { get; set; } = ZMode.Normal;
     public bool ClickThrough { get; set; }
+    public bool Locked { get; set; }
+    /// <summary>How see-through the note is at rest, 0 to 100. Editing always goes near solid.</summary>
+    public int Opacity { get; set; } = 55;
     public string Text { get; set; } = "";
 }

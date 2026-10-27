@@ -15,6 +15,7 @@ public partial class App : Application
     private readonly List<NoteWindow> _open = new();
     private Mutex? _single;
     private Forms.NotifyIcon? _tray;
+    private Hotkeys? _hotkeys;
     private bool _hidden;
 
     protected override void OnStartup(StartupEventArgs e)
@@ -33,11 +34,13 @@ public partial class App : Application
             notes.Add(new Note { Text = "Right-click for layer, colour and size.\nDrag by the edge. Ctrl+wheel resizes text." });
 
         foreach (var n in notes) Open(n);
+        _hotkeys = new Hotkeys(() => NewNote(atCursor: true), ToggleAll);
         BuildTray();
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
+        _hotkeys?.Dispose();
         _tray?.Dispose();
         base.OnExit(e);
     }
@@ -49,9 +52,16 @@ public partial class App : Application
         w.Show();
     }
 
-    public void NewNote(NoteWindow? near = null)
+    public void NewNote(NoteWindow? near = null, bool atCursor = false)
     {
         var n = new Note();
+        if (atCursor && Native.GetCursorPos(out var p))
+        {
+            // Cursor is in physical pixels; WPF wants device-independent ones.
+            var scale = Native.GetDpiForSystem() / 96.0;
+            n.X = p.x / scale;
+            n.Y = p.y / scale;
+        }
         if (near is not null)
         {
             n.X = near.Left + 30;
@@ -97,8 +107,12 @@ public partial class App : Application
     private void BuildTray()
     {
         var menu = new Forms.ContextMenuStrip();
-        menu.Items.Add("New note", null, (_, _) => NewNote());
-        menu.Items.Add("Show / hide all", null, (_, _) => ToggleAll());
+        var fresh = new Forms.ToolStripMenuItem("New note", null, (_, _) => NewNote());
+        if (_hotkeys?.NewNoteRegistered == true) fresh.ShortcutKeyDisplayString = "Ctrl+Alt+N";
+        menu.Items.Add(fresh);
+        var toggle = new Forms.ToolStripMenuItem("Show / hide all", null, (_, _) => ToggleAll());
+        if (_hotkeys?.ToggleRegistered == true) toggle.ShortcutKeyDisplayString = "Ctrl+Alt+H";
+        menu.Items.Add(toggle);
         menu.Items.Add(new Forms.ToolStripSeparator());
 
         var startup = new Forms.ToolStripMenuItem("Start with Windows") { CheckOnClick = true, Checked = StartsWithWindows };
