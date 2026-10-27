@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/LeahyCC/desk-notes)](https://github.com/LeahyCC/desk-notes/releases/latest)
+[![CI](https://github.com/LeahyCC/desk-notes/actions/workflows/ci.yml/badge.svg)](https://github.com/LeahyCC/desk-notes/actions/workflows/ci.yml)
 
 Sticky notes for Windows 11 that sit on the desktop the way Rainmeter skins do. Each note picks its own layer, from always on top down to the desktop itself, and the glass lets the wallpaper show through.
 
@@ -103,7 +104,7 @@ Early days. Not yet checked by hand: the On desktop layer during Win+D, and beha
 
 ## Contributing
 
-Issues and pull requests are welcome. For anything bigger than a fix, open an issue first so we can agree on the approach. If a change alters how something works, update this README in the same pull request.
+Issues and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers building, checking a change by hand and how pull requests are merged. Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md). Report security problems privately, as [SECURITY.md](SECURITY.md) explains, not in a public issue.
 
 ## License
 
