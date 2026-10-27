@@ -4,6 +4,8 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-27
+
 ### Added
 
 - MIT license, contributing guide, code of conduct and security policy.
@@ -36,5 +38,6 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Notes saved as markdown with frontmatter in `%APPDATA%\DeskNotes\notes\`.
 - Tray icon with new note, show or hide all, start with Windows, open folder and quit.
 
-[Unreleased]: https://github.com/LeahyCC/desk-notes/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/LeahyCC/desk-notes/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/LeahyCC/desk-notes/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/LeahyCC/desk-notes/releases/tag/v0.1.0
