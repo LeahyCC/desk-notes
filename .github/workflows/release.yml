@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish both exes
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          $common = @('-c', 'Release', '-r', 'win-x64', '-p:PublishSingleFile=true', "-p:Version=$version")
+
+          dotnet publish @common --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -o out/standalone
+          dotnet publish @common --self-contained false -o out/needs-dotnet
+
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item out/standalone/DeskNotes.exe "dist/DeskNotes-$version-win-x64.exe"
+          Copy-Item out/needs-dotnet/DeskNotes.exe "dist/DeskNotes-$version-win-x64-needs-dotnet10.exe"
+
+      - name: Create release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" (Get-ChildItem dist/*.exe).FullName --title "${{ github.ref_name }}" --generate-notes
