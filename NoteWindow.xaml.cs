@@ -54,7 +54,8 @@ public partial class NoteWindow : Window
 
         _z = new ZOrder(this);
         _z.Apply(note.Z);
-        RefreshDot();
+        // The layer is only applied once the window handle exists, so the dot must wait for that too.
+        SourceInitialized += (_, _) => RefreshDot();
         ContextMenu = BuildMenu();
 
         _save.Tick += (_, _) =>
