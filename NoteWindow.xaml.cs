@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Shell;
 using System.Windows.Threading;
 
 namespace DeskNotes;
@@ -48,7 +49,9 @@ public partial class NoteWindow : Window
         // Files can be edited by hand. A bad size or colour must not stop the app starting.
         Width = Math.Max(note.W, MinWidth);
         Height = Math.Max(note.H, MinHeight);
+        _save.Tick += (_, _) => SaveNow();
         KeepOnScreen();
+        ApplyLock();
         if (!IsColor(note.Color)) note.Color = Palette[0].Hex;
         Editor.Text = note.Text;
         ApplyFontSize(note.FontSize);
@@ -64,16 +67,17 @@ public partial class NoteWindow : Window
         {
             RefreshDot();
             ApplyClickThrough();
-            if (Note.Locked) ResizeMode = ResizeMode.NoResize;
         };
         ContextMenu = BuildMenu();
 
-        _save.Tick += (_, _) => SaveNow();
         LocationChanged += (_, _) => RememberGeometry();
         SizeChanged += (_, _) => RememberGeometry();
         Activated += (_, _) => ApplyColor(animate: true);
         Deactivated += (_, _) => ApplyColor(animate: true);
     }
+
+    // How many notes have already been brought back this launch. Shared so they do not land on one point.
+    private static int _offScreenSlot;
 
     // Monitors come and go. A note saved on a screen that is no longer there comes back on the main one.
     private void KeepOnScreen()
@@ -81,11 +85,20 @@ public partial class NoteWindow : Window
         var screen = new Rect(SystemParameters.VirtualScreenLeft, SystemParameters.VirtualScreenTop,
             SystemParameters.VirtualScreenWidth, SystemParameters.VirtualScreenHeight);
         var visible = Rect.Intersect(new Rect(Left, Top, Width, Height), screen);
-        if (visible.IsEmpty || visible.Width < 40 || visible.Height < 40)
-        {
-            Left = 120;
-            Top = 120;
-        }
+        if (!visible.IsEmpty && visible.Width >= 40 && visible.Height >= 40) return;
+
+        // Several notes can miss the screen at once. One shared point would hide all but the top one.
+        var area = SystemParameters.WorkArea;
+        const double step = 28;
+        var cols = Math.Max(1, (int)(area.Width / step) - 1);
+        var rows = Math.Max(1, (int)(area.Height / step) - 1);
+        var slot = _offScreenSlot++;
+        Left = area.Left + step + (slot % cols) * step;
+        Top = area.Top + step + ((slot / cols) % rows) * step;
+        // Remember the new spot. Otherwise the next launch reads the old one and moves the note again.
+        Note.X = Left;
+        Note.Y = Top;
+        QueueSave();
     }
 
     // ---- persistence ---------------------------------------------------------------------------
@@ -225,9 +238,23 @@ public partial class NoteWindow : Window
     private void SetLocked(bool on)
     {
         Note.Locked = on;
-        ResizeMode = on ? ResizeMode.NoResize : ResizeMode.CanResize;
+        ApplyLock();
         ContextMenu = BuildMenu();
         QueueSave();
+    }
+
+    // The chrome border is what actually resizes the window. ResizeMode does not turn it off.
+    private void ApplyLock()
+    {
+        ResizeMode = Note.Locked ? ResizeMode.NoResize : ResizeMode.CanResize;
+        WindowChrome.SetWindowChrome(this, new WindowChrome
+        {
+            CaptionHeight = 0,
+            ResizeBorderThickness = new Thickness(Note.Locked ? 0 : 8),
+            GlassFrameThickness = new Thickness(0),
+            CornerRadius = new CornerRadius(0),
+            UseAeroCaptionButtons = false,
+        });
     }
 
     private void SetClickThrough(bool on)

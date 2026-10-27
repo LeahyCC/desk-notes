@@ -11,10 +11,29 @@ namespace DeskNotes;
 /// </summary>
 public static class NoteStore
 {
-    public static readonly string Root = Path.Combine(
+    private static string _root = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DeskNotes");
-    public static readonly string NotesDir = Path.Combine(Root, "notes");
-    public static readonly string TrashDir = Path.Combine(Root, "trash");
+
+    public static string Root => _root;
+    public static string NotesDir => Path.Combine(_root, "notes");
+    public static string TrashDir => Path.Combine(_root, "trash");
+
+    /// <summary>Tests point the store at a temp folder. The app keeps the AppData default.</summary>
+    internal static void SetRoot(string path) => _root = path;
+
+    // Best-effort. A failure here must not take the notes down with it.
+    internal static void Log(string message)
+    {
+        try
+        {
+            Directory.CreateDirectory(Root);
+            File.AppendAllText(Path.Combine(Root, "error.log"), $"{DateTime.Now:s} {message}\n\n");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // The log sits beside the notes. If that folder cannot be written, there is nowhere else to put it.
+        }
+    }
 
     public static List<Note> LoadAll()
     {
@@ -26,9 +45,10 @@ public static class NoteStore
             {
                 list.Add(Parse(File.ReadAllText(file), Path.GetFileNameWithoutExtension(file)));
             }
-            catch
+            catch (Exception ex)
             {
-                // A hand-edited file with broken frontmatter must not stop every other note loading.
+                // One bad file must not stop every other note loading.
+                Log($"Could not load {Path.GetFileName(file)}: {ex.Message}");
             }
         }
         return list;

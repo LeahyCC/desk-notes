@@ -13,12 +13,19 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 - Ctrl+Alt+N makes a new note at the mouse, and Ctrl+Alt+H shows or hides every note.
 - Glass level per note: Clear, Glass, Frosted or Solid.
 - Lock position, so a note cannot be dragged or resized.
-- A note saved on a monitor that is gone comes back on the main one.
+- A note saved on a monitor that is gone comes back on the main one, stepped apart from any others.
 - Crashes are written to `%APPDATA%\DeskNotes\error.log`.
+
+### Changed
+
+- Starting DeskNotes while it is already running shows the notes.
 
 ### Fixed
 
 - Note loss and startup bugs found in review.
+- Click-through applies as soon as it is turned on.
+- Start with Windows turns off when the exe has moved.
+- A note file that cannot be read is logged, and the other notes still open.
 
 ## [0.1.0] - 2026-10-26
 

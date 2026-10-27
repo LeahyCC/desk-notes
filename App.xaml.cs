@@ -9,20 +9,26 @@ public partial class App : Application
 {
     private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string RunName = "DeskNotes";
+    private const string MutexName = "DeskNotes-single-instance";
+    private const string ShowEventName = "DeskNotes-show";
 
     public static new App Current => (App)Application.Current;
 
     private readonly List<NoteWindow> _open = new();
     private Mutex? _single;
+    private EventWaitHandle? _show;
     private Forms.NotifyIcon? _tray;
     private Hotkeys? _hotkeys;
     private bool _hidden;
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        _single = new Mutex(true, "DeskNotes-single-instance", out var first);
+        // The event exists before the mutex, so a second launch can signal as soon as it sees we are running.
+        _show = new EventWaitHandle(false, EventResetMode.AutoReset, ShowEventName);
+        _single = new Mutex(true, MutexName, out var first);
         if (!first)
         {
+            _show.Set();
             Shutdown();
             return;
         }
@@ -32,8 +38,7 @@ public partial class App : Application
         // A crash with no window is invisible; leave a trail next to the notes.
         DispatcherUnhandledException += (_, args) =>
         {
-            Directory.CreateDirectory(NoteStore.Root);
-            File.AppendAllText(Path.Combine(NoteStore.Root, "error.log"), $"{DateTime.Now:s} {args.Exception}\n\n");
+            NoteStore.Log(args.Exception.ToString());
             // The app is about to close; keep what was typed in the last moment before it goes.
             foreach (var w in _open) w.FlushSave();
         };
@@ -45,6 +50,8 @@ public partial class App : Application
         foreach (var n in notes) Open(n);
         _hotkeys = new Hotkeys(() => NewNote(atCursor: true), ToggleAll);
         BuildTray();
+        // After the notes exist, so a signal that arrived during startup still shows them.
+        new Thread(WatchShow) { IsBackground = true, Name = "DeskNotes.Show" }.Start();
     }
 
     // Windows can end the process soon after this returns, before OnExit gets a turn.
@@ -60,6 +67,23 @@ public partial class App : Application
         _hotkeys?.Dispose();
         _tray?.Dispose();
         base.OnExit(e);
+    }
+
+    // A second launch sets the event. The thread is background, so quitting does not wait on it.
+    private void WatchShow()
+    {
+        while (_show is not null && _show.WaitOne())
+        {
+            if (Dispatcher.HasShutdownStarted) return;
+            Dispatcher.BeginInvoke(ShowAll);
+        }
+    }
+
+    private void ShowAll()
+    {
+        if (Dispatcher.HasShutdownStarted) return;
+        _hidden = false;
+        foreach (var w in _open) w.Visibility = Visibility.Visible;
     }
 
     private void Open(Note n)
@@ -121,7 +145,7 @@ public partial class App : Application
         get
         {
             using var key = Registry.CurrentUser.OpenSubKey(RunKey);
-            return key?.GetValue(RunName) is string;
+            return key?.GetValue(RunName) is string registered && RegisteredExe(registered);
         }
         set
         {
@@ -129,6 +153,13 @@ public partial class App : Application
             if (value && Environment.ProcessPath is { } exe) key.SetValue(RunName, "\"" + exe + "\"");
             else key.DeleteValue(RunName, throwOnMissingValue: false);
         }
+    }
+
+    // The tick stays off when the stored path is an old copy of the exe.
+    private static bool RegisteredExe(string registered)
+    {
+        if (Environment.ProcessPath is not { } exe) return false;
+        return string.Equals(registered.Trim().Trim('"'), exe, StringComparison.OrdinalIgnoreCase);
     }
 
     private void BuildTray()
@@ -147,7 +178,11 @@ public partial class App : Application
         menu.Items.Add(startup);
 
         menu.Items.Add("Open notes folder", null, (_, _) =>
-            System.Diagnostics.Process.Start("explorer.exe", NoteStore.NotesDir));
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = NoteStore.NotesDir,
+                UseShellExecute = true,
+            }));
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Quit", null, (_, _) => Shutdown());
 

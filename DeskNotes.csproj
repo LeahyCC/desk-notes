@@ -14,9 +14,12 @@
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <Product>DeskNotes</Product>
     <Authors>Colin Leahy</Authors>
+    <!-- The project file is at the repo root, so the test tree would otherwise be compiled into the app. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);DeskNotes.Tests/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="DeskNotes.Tests" />
     <!-- UseWindowsForms adds a global using that clashes with WPF names. We qualify Forms by hand. -->
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />

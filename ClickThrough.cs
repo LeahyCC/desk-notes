@@ -62,5 +62,8 @@ internal sealed class ClickThrough
         _transparent = transparent;
         var ex = GetWindowLong(_hwnd, GWL_EXSTYLE);
         SetWindowLong(_hwnd, GWL_EXSTYLE, transparent ? ex | WS_EX_TRANSPARENT : ex & ~WS_EX_TRANSPARENT);
+        // Windows caches the style. Without this, click-through waits for the next move.
+        SetWindowPos(_hwnd, IntPtr.Zero, 0, 0, 0, 0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
     }
 }
