@@ -1,0 +1,58 @@
+name: Bug report
+description: Something in DeskNotes does not work the way the README says.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Set a note to On desktop
+        2. Press Win+D
+        3. The note disappears
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Layer of the note involved
+      options:
+        - Stay topmost
+        - Topmost
+        - Normal
+        - Bottom
+        - On desktop
+        - Not about a layer
+  - type: input
+    id: version
+    attributes:
+      label: DeskNotes version
+      description: From the exe name or the release you downloaded. Say if you built from source.
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version and build
+      description: Run `winver` to see it.
+      placeholder: Windows 11 24H2, build 26100.2314
+    validations:
+      required: true
+  - type: input
+    id: monitors
+    attributes:
+      label: Monitors and scaling
+      placeholder: Two monitors, main at 150%, second at 100%
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: The note's frontmatter, an error log, or a screenshot helps.
