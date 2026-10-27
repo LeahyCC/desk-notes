@@ -20,7 +20,8 @@ namespace DeskNotes;
 /// marker window sits at the bottom of the stack, and a timer watches whether the desktop window
 /// has jumped above it. That only happens during Show Desktop.
 ///
-/// Notes never minimise, whatever the layer. A sticky note that vanishes on Win+M is no use.
+/// Notes never minimise or close from the keyboard, whatever the layer. A sticky note that vanishes on
+/// Win+M is no use, and one closed by a stray Alt+F4 would stay gone until the app restarts.
 /// </summary>
 internal sealed class ZOrder
 {
@@ -99,7 +100,13 @@ internal sealed class ZOrder
         {
             if (_raised) Lower();
             OnDesktopNotes.Remove(this);
-            if (OnDesktopNotes.Count == 0) DesktopWatch.Stop();
+            if (OnDesktopNotes.Count == 0)
+            {
+                DesktopWatch.Stop();
+                // Nothing watches any more, so the flag would go stale and the next On desktop note
+                // would start out topmost, even with Show Desktop long over.
+                _showDesktop = false;
+            }
         }
     }
 
@@ -123,7 +130,7 @@ internal sealed class ZOrder
     {
         switch (msg)
         {
-            case WM_SYSCOMMAND when ((long)wParam & 0xFFF0) == SC_MINIMIZE:
+            case WM_SYSCOMMAND when ((long)wParam & 0xFFF0) is SC_MINIMIZE or SC_CLOSE:
                 handled = true;
                 break;
 

@@ -22,4 +22,6 @@ public sealed class Note
     public ZMode Z { get; set; } = ZMode.Normal;
     public bool ClickThrough { get; set; }
     public string Text { get; set; } = "";
+    /// <summary>Frontmatter lines the app does not use, such as Obsidian tags. Written back as found.</summary>
+    public List<string> OtherFrontmatter { get; } = new();
 }
