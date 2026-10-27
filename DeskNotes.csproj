@@ -11,6 +11,9 @@
     <AssemblyName>DeskNotes</AssemblyName>
     <RootNamespace>DeskNotes</RootNamespace>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <Version>0.1.0</Version>
+    <Product>DeskNotes</Product>
+    <Authors>Colin Leahy</Authors>
   </PropertyGroup>
 
   <ItemGroup>
