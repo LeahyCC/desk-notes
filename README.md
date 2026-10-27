@@ -23,10 +23,10 @@ DeskNotes has no window of its own. It lives in the tray by the clock, and Windo
 
 - Double-click the tray icon for a new note.
 - Right-click the tray icon to make a note, show or hide all of them, start with Windows, open the notes folder, or quit.
-- Turn on "Start with Windows" so your notes come back after a restart. It remembers where the exe is, so turn it on after the exe is where you want it.
+- Turn on "Start with Windows" after the exe is where you want it. The tick remembers that path, and turns off if you move the exe.
 - Ctrl+Alt+N makes a new note at the mouse. Ctrl+Alt+H shows or hides every note. If another program already uses one of those, the tray menu still has the action.
 
-Only one copy runs at a time. Starting the exe again does nothing while the first one is running.
+Only one copy runs at a time. Starting the exe again shows your notes.
 
 ## Using notes
 
@@ -75,9 +75,9 @@ opacity: 55
 Note text here.
 ```
 
-You can edit these by hand while DeskNotes is closed. A value it can't read falls back to the default. A note saved on a monitor that is no longer there comes back on the main one when DeskNotes starts.
+You can edit these by hand while DeskNotes is closed. A value it can't read falls back to the default. Notes saved on a monitor that is no longer there come back on the main one when DeskNotes starts, stepped apart so they do not sit in one pile.
 
-If DeskNotes crashes, it writes what happened to `%APPDATA%\DeskNotes\error.log`.
+If DeskNotes crashes, or a note file cannot be read, it writes what happened to `%APPDATA%\DeskNotes\error.log`. The other notes still open.
 
 ## How the layers work
 

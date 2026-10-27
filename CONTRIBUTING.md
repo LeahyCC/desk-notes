@@ -18,13 +18,20 @@ dotnet run
 
 ## Checking your change
 
-There are no automated tests yet. CI only checks that the project builds. Before you open a pull request, try your change by hand. Depending on what it touches:
+CI builds the app, runs the tests, and publishes both exes. Run the tests with:
+
+```
+dotnet test DeskNotes.Tests
+```
+
+Before you open a pull request, try your change by hand too. Depending on what it touches:
 
 - Each of the five layers, including On desktop with Win+D
 - Click-through, and turning it off again from the top strip
 - Dragging and resizing
 - Restarting DeskNotes and checking the note comes back where it was
 - A second monitor, if you have one
+- Start the exe again while the notes are hidden
 
 ## Pull requests
 
@@ -45,7 +52,7 @@ To release:
 1. Move the Unreleased entries in `CHANGELOG.md` under the new version, update the compare links at the bottom, and merge that.
 2. Tag `main` with the version (`v0.2.0`) and push the tag.
 
-The release workflow then builds both exes and attaches them to a GitHub release.
+The release workflow then builds both exes and attaches them to a GitHub release. The release text is the changelog section for that version.
 
 ## Code of Conduct
 

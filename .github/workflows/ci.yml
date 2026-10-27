@@ -19,5 +19,15 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Build
-        run: dotnet build -c Release
+      - name: Test
+        run: dotnet test DeskNotes.Tests -c Release
+
+      # Same publish flags as the release workflow.
+      - name: Publish both exes
+        shell: pwsh
+        run: |
+          $common = @('-c', 'Release', '-r', 'win-x64', '-p:PublishSingleFile=true')
+          dotnet publish DeskNotes.csproj @common --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o out/standalone
+          dotnet publish DeskNotes.csproj @common --self-contained false -o out/needs-dotnet
+          if (-not (Test-Path out/standalone/DeskNotes.exe)) { throw "standalone exe missing" }
+          if (-not (Test-Path out/needs-dotnet/DeskNotes.exe)) { throw "framework-dependent exe missing" }

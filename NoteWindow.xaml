@@ -15,15 +15,6 @@
         UseLayoutRounding="True"
         SnapsToDevicePixels="True">
 
-  <!-- Borderless window with resize handles on the edges and no caption bar at all. -->
-  <WindowChrome.WindowChrome>
-    <WindowChrome CaptionHeight="0"
-                  ResizeBorderThickness="8"
-                  GlassFrameThickness="0"
-                  CornerRadius="0"
-                  UseAeroCaptionButtons="False" />
-  </WindowChrome.WindowChrome>
-
   <Border x:Name="Frame"
           CornerRadius="12"
           BorderThickness="1"
