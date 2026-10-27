@@ -13,7 +13,7 @@ Sticky notes for Windows 11 that sit on the desktop the way Rainmeter skins do. 
 Get the exe from the [latest release](https://github.com/LeahyCC/desk-notes/releases/latest). There are two:
 
 - `DeskNotes-<version>-win-x64.exe` runs on its own. About 69 MB.
-- `DeskNotes-<version>-win-x64-needs-dotnet10.exe` is about 200 KB but needs the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
+- `DeskNotes-<version>-win-x64-needs-dotnet10.exe` is about 600 KB but needs the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 There is no installer. Put the exe somewhere it can stay and run it. The exe isn't signed, so Windows SmartScreen warns the first time: click More info, then Run anyway.
 
