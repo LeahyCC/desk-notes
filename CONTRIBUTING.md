@@ -38,7 +38,14 @@ Pull requests are squash-merged into `main`.
 
 ## Releases
 
-The maintainer tags a version (`v0.2.0`) and the release workflow builds both exes and attaches them to a GitHub release.
+The git tag is the version. The release workflow reads it from the tag and passes it to the build, so the project file has no version number to bump. Local builds report 1.0.0.
+
+To release:
+
+1. Move the Unreleased entries in `CHANGELOG.md` under the new version, update the compare links at the bottom, and merge that.
+2. Tag `main` with the version (`v0.2.0`) and push the tag.
+
+The release workflow then builds both exes and attaches them to a GitHub release.
 
 ## Code of Conduct
 
