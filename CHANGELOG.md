@@ -4,6 +4,15 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Changed
+
+- The tray tooltip shows the version.
+- Starting a different DeskNotes exe quits the one that is running and starts the new one.
+
+### Fixed
+
+- Start with Windows removes a path that is not this exe, so login does not start an old copy.
+
 ## [0.2.0] - 2026-10-27
 
 ### Added
