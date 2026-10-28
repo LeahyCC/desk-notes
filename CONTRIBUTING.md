@@ -32,6 +32,7 @@ Before you open a pull request, try your change by hand too. Depending on what i
 - Restarting DeskNotes and checking the note comes back where it was
 - A second monitor, if you have one
 - Start the exe again while the notes are hidden
+- Run a copy from another folder and the first one quits
 
 ## Pull requests
 

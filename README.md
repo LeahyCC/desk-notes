@@ -23,10 +23,21 @@ DeskNotes has no window of its own. It lives in the tray by the clock, and Windo
 
 - Double-click the tray icon for a new note.
 - Right-click the tray icon to make a note, show or hide all of them, start with Windows, open the notes folder, or quit.
-- Turn on "Start with Windows" after the exe is where you want it. The tick remembers that path, and turns off if you move the exe.
+- Turn on "Start with Windows" after the exe is where you want it. The tick is that file's path. Run DeskNotes from a new path and the old entry is removed, so login does not start it.
 - Ctrl+Alt+N makes a new note at the mouse. Ctrl+Alt+H shows or hides every note. If another program already uses one of those, the tray menu still has the action.
+- The tray tooltip shows the version, so you can see which file is running.
 
-Only one copy runs at a time. Starting the exe again shows your notes.
+Only one copy runs at a time. Starting the same exe again shows your notes. Starting a different one quits the open copy and runs the new one.
+
+## Updating
+
+Quit from the tray before you replace the same file. Windows will not overwrite an exe that is running. Notes stay in `%APPDATA%\DeskNotes`, and Start with Windows keeps that path.
+
+A download with a new name does not remove the old file. Run the new one and it takes over. Tick Start with Windows again, then delete the old file. Login will not start the old path.
+
+## Removing
+
+Untick Start with Windows, quit, and delete the exe. Delete `%APPDATA%\DeskNotes` as well if the notes should go.
 
 ## Using notes
 
@@ -77,7 +88,7 @@ Note text here.
 
 You can edit these by hand while DeskNotes is closed. A value it can't read falls back to the default. Notes saved on a monitor that is no longer there come back on the main one when DeskNotes starts, stepped apart so they do not sit in one pile.
 
-If DeskNotes crashes, or a note file cannot be read, it writes what happened to `%APPDATA%\DeskNotes\error.log`. The other notes still open.
+If DeskNotes crashes, or a note file cannot be read, it writes what happened to `%APPDATA%\DeskNotes\error.log`. The other notes still open. While it is running it also writes `running.txt` in that folder, and removes the file on quit.
 
 ## How the layers work
 

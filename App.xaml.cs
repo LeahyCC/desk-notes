@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Windows;
 using Microsoft.Win32;
 using Forms = System.Windows.Forms;
@@ -11,27 +12,35 @@ public partial class App : Application
     private const string RunName = "DeskNotes";
     private const string MutexName = "DeskNotes-single-instance";
     private const string ShowEventName = "DeskNotes-show";
+    private const string ReplaceEventName = "DeskNotes-replace";
+    private const string RunningFileName = "running.txt";
 
     public static new App Current => (App)Application.Current;
 
     private readonly List<NoteWindow> _open = new();
     private Mutex? _single;
     private EventWaitHandle? _show;
+    private EventWaitHandle? _replace;
     private Forms.NotifyIcon? _tray;
     private Hotkeys? _hotkeys;
     private bool _hidden;
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        // The event exists before the mutex, so a second launch can signal as soon as it sees we are running.
+        // Events exist before the mutex, so a second launch can signal as soon as it sees we are running.
         _show = new EventWaitHandle(false, EventResetMode.AutoReset, ShowEventName);
+        _replace = new EventWaitHandle(false, EventResetMode.AutoReset, ReplaceEventName);
         _single = new Mutex(true, MutexName, out var first);
-        if (!first)
+        if (!first && !TakeOver())
         {
-            _show.Set();
             Shutdown();
             return;
         }
+
+        PublishRunningPath();
+        ClearStaleStartup();
+        // Before the notes load, so a replace signal during startup still quits this copy.
+        new Thread(WatchSignals) { IsBackground = true, Name = "DeskNotes.Signals" }.Start();
 
         base.OnStartup(e);
 
@@ -50,8 +59,40 @@ public partial class App : Application
         foreach (var n in notes) Open(n);
         _hotkeys = new Hotkeys(() => NewNote(atCursor: true), ToggleAll);
         BuildTray();
-        // After the notes exist, so a signal that arrived during startup still shows them.
-        new Thread(WatchShow) { IsBackground = true, Name = "DeskNotes.Show" }.Start();
+    }
+
+    // Same exe: show the notes. A different file should be the one left running, so ask this copy to quit.
+    // A build from before this signal never hears it, so give up and show the notes instead of waiting.
+    private bool TakeOver()
+    {
+        if (!OtherExeIsRunning())
+        {
+            _show?.Set();
+            return false;
+        }
+
+        try
+        {
+            _replace?.Set();
+            _single?.Dispose();
+            _single = new Mutex(false, MutexName);
+            try
+            {
+                if (_single.WaitOne(TimeSpan.FromSeconds(5))) return true;
+            }
+            catch (AbandonedMutexException)
+            {
+                // The other copy closed without releasing the mutex. This process owns it now.
+                return true;
+            }
+
+            _show?.Set();
+            return false;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or WaitHandleCannotBeOpenedException)
+        {
+            return false;
+        }
     }
 
     // Windows can end the process soon after this returns, before OnExit gets a turn.
@@ -64,18 +105,27 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         foreach (var w in _open) w.FlushSave();
+        ClearRunningPath();
         _hotkeys?.Dispose();
         _tray?.Dispose();
         base.OnExit(e);
     }
 
-    // A second launch sets the event. The thread is background, so quitting does not wait on it.
-    private void WatchShow()
+    // The thread is background, so quitting does not wait on it. Shutdown is safe from this thread.
+    private void WatchSignals()
     {
-        while (_show is not null && _show.WaitOne())
+        if (_show is null || _replace is null) return;
+        while (!Dispatcher.HasShutdownStarted)
         {
+            var which = WaitHandle.WaitAny(new WaitHandle[] { _show, _replace });
             if (Dispatcher.HasShutdownStarted) return;
-            Dispatcher.BeginInvoke(ShowAll);
+            if (which == 0)
+                Dispatcher.BeginInvoke(ShowAll);
+            else
+            {
+                Shutdown();
+                return;
+            }
         }
     }
 
@@ -155,11 +205,84 @@ public partial class App : Application
         }
     }
 
-    // The tick stays off when the stored path is an old copy of the exe.
-    private static bool RegisteredExe(string registered)
+    // The menu hides the tick when the path is an old copy. Leaving the value would still start that copy at login.
+    private static void ClearStaleStartup()
     {
-        if (Environment.ProcessPath is not { } exe) return false;
-        return string.Equals(registered.Trim().Trim('"'), exe, StringComparison.OrdinalIgnoreCase);
+        if (Environment.ProcessPath is null) return;
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(RunKey, writable: true);
+            if (key?.GetValue(RunName) is not string registered || RegisteredExe(registered)) return;
+            key.DeleteValue(RunName, throwOnMissingValue: false);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            NoteStore.Log($"Could not update Start with Windows: {ex.Message}");
+        }
+    }
+
+    private static bool RegisteredExe(string registered) => SameExePath(registered, Environment.ProcessPath);
+
+    /// <summary>Paths match ignoring case and the quotes the Run key stores.</summary>
+    internal static bool SameExePath(string? recorded, string? current)
+    {
+        if (string.IsNullOrWhiteSpace(recorded) || string.IsNullOrWhiteSpace(current)) return false;
+        return string.Equals(recorded.Trim().Trim('"'), current.Trim().Trim('"'), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string RunningPathFile => Path.Combine(NoteStore.Root, RunningFileName);
+
+    private static void PublishRunningPath()
+    {
+        if (Environment.ProcessPath is not { } exe) return;
+        try
+        {
+            Directory.CreateDirectory(NoteStore.Root);
+            File.WriteAllText(RunningPathFile, exe);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            NoteStore.Log($"Could not record the running exe: {ex.Message}");
+        }
+    }
+
+    // Only remove the file if it still names this exe, so a copy that just took over keeps its own line.
+    private static void ClearRunningPath()
+    {
+        try
+        {
+            if (!File.Exists(RunningPathFile)) return;
+            if (!SameExePath(File.ReadAllText(RunningPathFile), Environment.ProcessPath)) return;
+            File.Delete(RunningPathFile);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // Quit still matters more than removing the marker. The next launch overwrites it.
+        }
+    }
+
+    private static bool OtherExeIsRunning()
+    {
+        var recorded = ReadRunningPath();
+        // The owner writes the file just after it takes the mutex. A second launch can land in that gap.
+        if (recorded is null)
+        {
+            Thread.Sleep(200);
+            recorded = ReadRunningPath();
+        }
+        return recorded is not null && !SameExePath(recorded, Environment.ProcessPath);
+    }
+
+    private static string? ReadRunningPath()
+    {
+        try
+        {
+            return File.Exists(RunningPathFile) ? File.ReadAllText(RunningPathFile) : null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
     }
 
     private void BuildTray()
@@ -189,11 +312,18 @@ public partial class App : Application
         _tray = new Forms.NotifyIcon
         {
             Icon = TrayIcon(),
-            Text = "DeskNotes",
+            Text = TrayText(),
             Visible = true,
             ContextMenuStrip = menu,
         };
         _tray.DoubleClick += (_, _) => NewNote();
+    }
+
+    // Release builds use the tag. A local build stays at 1.0.0, which the contributing notes already mention.
+    private static string TrayText()
+    {
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        return version is null ? "DeskNotes" : $"DeskNotes {version.ToString(3)}";
     }
 
     // The same icon the exe carries. Asking for the small icon size makes Windows pick the frame
