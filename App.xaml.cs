@@ -116,9 +116,6 @@ public partial class App : Application
         }
         NoteStore.Save(n);
         Open(n);
-        // A note is on screen now, so the next show/hide press should hide, not show the rest.
-        // The other hidden notes stay hidden until that toggle comes back round.
-        _hidden = false;
     }
 
     public void Delete(NoteWindow w)
@@ -138,9 +135,10 @@ public partial class App : Application
         w.Close();
     }
 
+    // A stored flag goes stale when the only note on screen is deleted.
     private void ToggleAll()
     {
-        _hidden = !_hidden;
+        _hidden = _open.Any(w => w.Visibility == Visibility.Visible);
         foreach (var w in _open) w.Visibility = _hidden ? Visibility.Hidden : Visibility.Visible;
     }
 
