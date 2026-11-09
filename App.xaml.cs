@@ -111,6 +111,7 @@ public partial class App : Application
             n.H = near.Height;
             n.Color = near.Note.Color;
             n.FontSize = near.Note.FontSize;
+            n.Opacity = near.Note.Opacity;
             n.Z = near.Note.Z;
         }
         NoteStore.Save(n);

@@ -4,6 +4,10 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Fixed
+
+- New note from a note's menu keeps that note's glass level.
+
 ## [0.2.0] - 2026-10-27
 
 ### Added
