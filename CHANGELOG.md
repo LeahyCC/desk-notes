@@ -7,6 +7,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 ### Fixed
 
 - New note from a note's menu keeps that note's glass level.
+- After hiding every note and making a new one, show/hide hides again instead of showing them all.
 
 ## [0.2.0] - 2026-10-27
 

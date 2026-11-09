@@ -116,6 +116,9 @@ public partial class App : Application
         }
         NoteStore.Save(n);
         Open(n);
+        // A note is on screen now, so the next show/hide press should hide, not show the rest.
+        // The other hidden notes stay hidden until that toggle comes back round.
+        _hidden = false;
     }
 
     public void Delete(NoteWindow w)
