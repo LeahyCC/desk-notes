@@ -77,7 +77,7 @@ Note text here.
 
 You can edit these by hand while DeskNotes is closed. A value it can't read falls back to the default. Notes saved on a monitor that is no longer there come back on the main one when DeskNotes starts, stepped apart so they do not sit in one pile.
 
-If DeskNotes crashes, or a note file cannot be read, it writes what happened to `%APPDATA%\DeskNotes\error.log`. The other notes still open.
+If DeskNotes crashes, or a note file cannot be read or saved, it writes what happened to `%APPDATA%\DeskNotes\error.log`. The other notes still open.
 
 ## How the layers work
 

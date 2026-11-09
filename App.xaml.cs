@@ -111,6 +111,7 @@ public partial class App : Application
             n.H = near.Height;
             n.Color = near.Note.Color;
             n.FontSize = near.Note.FontSize;
+            n.Opacity = near.Note.Opacity;
             n.Z = near.Note.Z;
         }
         NoteStore.Save(n);
@@ -134,9 +135,10 @@ public partial class App : Application
         w.Close();
     }
 
+    // A stored flag goes stale when the only note on screen is deleted.
     private void ToggleAll()
     {
-        _hidden = !_hidden;
+        _hidden = _open.Any(w => w.Visibility == Visibility.Visible);
         foreach (var w in _open) w.Visibility = _hidden ? Visibility.Hidden : Visibility.Visible;
     }
 

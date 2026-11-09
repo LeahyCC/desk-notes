@@ -4,6 +4,13 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Fixed
+
+- New note from a note's menu keeps that note's glass level.
+- After hiding every note and making a new one, show/hide hides again instead of showing them all.
+- Deleting that new note, the next show/hide brings the hidden notes back.
+- A note that cannot be saved is written to `error.log`, once when it starts failing and once when it saves again.
+
 ## [0.2.0] - 2026-10-27
 
 ### Added
