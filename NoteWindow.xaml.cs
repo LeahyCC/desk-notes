@@ -109,16 +109,23 @@ public partial class NoteWindow : Window
         _save.Start();
     }
 
+    // True while saves keep failing, so the log gets one line per run of failures, not one every retry.
+    private bool _saveFailing;
+
     private void SaveNow()
     {
         _save.Stop();
         try
         {
             NoteStore.Save(Note);
+            if (_saveFailing) NoteStore.Log($"Saved note {Note.Id} again after earlier failures.");
+            _saveFailing = false;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             // Something else has the file open (a sync tool, a virus scan). Try again shortly, do not crash.
+            if (!_saveFailing) NoteStore.Log($"Could not save note {Note.Id}, retrying: {ex.Message}");
+            _saveFailing = true;
             QueueSave();
         }
     }
